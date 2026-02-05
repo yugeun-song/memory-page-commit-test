@@ -1,152 +1,162 @@
 #if defined(_WIN64)
-#include <windows.h>
-#include <psapi.h>
-#pragma comment(lib, "psapi.lib")
+    #include <windows.h>
+    #include <psapi.h>
+    #pragma comment(lib, "psapi.lib")
 #elif defined(__linux__)
-#include <sys/resource.h>
-#include <sys/mman.h>
-#include <unistd.h>
+    #define _DEFAULT_SOURCE
+    #include <sys/resource.h>
+    #include <sys/mman.h>
+    #include <unistd.h>
+    #include <sys/types.h>
+    #include <fcntl.h>
 #else
-#error "This project only supports x64 Windows and Linux."
+    #error "This project only supports x64 Windows and Linux."
 #endif
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
 
-#if defined(_WIN64)
-#define BYTES_TO_GB (1024.0 * 1024.0 * 1024.0)
-#elif defined(__linux__)
-#define KB_TO_GB (1024.0 * 1024.0)
-#endif
+#define GIB_SIZE (1024.0 * 1024.0 * 1024.0)
 
 #if defined(_WIN64)
-#define RAW_ALLOC(ptr, size) \
+    #define RAW_ALLOC(ptr, size) \
         do { \
             (ptr) = (volatile unsigned char*)VirtualAlloc(NULL, (size), MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE); \
         } while (0)
 
-#define RAW_FREE(ptr, size) \
+    #define RAW_FREE(ptr, size) \
         do { \
-            VirtualFree((ptr), 0, MEM_RELEASE); \
+            VirtualFree((void*)(ptr), 0, MEM_RELEASE); \
         } while (0)
 
-#define RAW_ALLOC_FAILED(ptr) ((ptr) == NULL)
+    #define RAW_ALLOC_FAILED(ptr) ((ptr) == NULL)
+
+    void PrintError(const char* message)
+    {
+        fprintf(stderr, "[ERROR] %s (Win32 Error Code: %lu)\n", message, GetLastError());
+    }
 
 #elif defined(__linux__)
-#define RAW_ALLOC(ptr, size) \
+    #define RAW_ALLOC(ptr, size) \
         do { \
             (ptr) = (volatile unsigned char*)mmap(NULL, (size), PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0); \
         } while (0)
 
-#define RAW_FREE(ptr, size) \
+    #define RAW_FREE(ptr, size) \
         do { \
-            munmap((ptr), (size)); \
+            munmap((void*)(ptr), (size)); \
         } while (0)
 
-#define RAW_ALLOC_FAILED(ptr) ((ptr) == MAP_FAILED)
+    #define RAW_ALLOC_FAILED(ptr) ((ptr) == MAP_FAILED)
+
+    void PrintError(const char* message)
+    {
+        perror(message);
+    }
 #endif
 
-size_t g_ResourceSize = 1024ULL * 1024ULL * 1024ULL * 4ULL; /* 4GB */
+size_t g_ResourceSize = 1024ULL * 1024ULL * 1024ULL * 4ULL;
 
-void printPhysicalMemoryUsage(const char* str)
+void PrintPhysicalMemoryUsage(const char* label)
 {
 #if defined(_WIN64)
     PROCESS_MEMORY_COUNTERS pmc;
     if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc)))
     {
-        printf("[%s] Physical Memory Usage: %lf GB\n", str, (double)pmc.WorkingSetSize / BYTES_TO_GB);
+        printf("[%s] Physical Memory Usage (Working Set): %.4lf GB\n", label, (double)pmc.WorkingSetSize / GIB_SIZE);
     }
 #elif defined(__linux__)
-    struct rusage r_usage;
-    if (getrusage(RUSAGE_SELF, &r_usage) == 0)
+    int fd = open("/proc/self/statm", O_RDONLY);
+    if (fd != -1)
     {
-        printf("[%s] Physical Memory Usage: %lf GB\n", str, (double)r_usage.ru_maxrss / KB_TO_GB);
+        char buffer[128];
+        if (read(fd, buffer, sizeof(buffer)) > 0)
+        {
+            long rssPages;
+            if (sscanf(buffer, "%*s %ld", &rssPages) == 1)
+            {
+                double rssGb = (double)rssPages * sysconf(_SC_PAGESIZE) / GIB_SIZE;
+                printf("[%s] Physical Memory Usage (RSS): %.4lf GB\n", label, rssGb);
+            }
+        }
+        close(fd);
     }
 #endif
 }
 
-void doNotPageUpdate(void)
+void RunTest(const char* testName, int forceTouch)
 {
-    printPhysicalMemoryUsage("doNotPageUpdate() - Before Malloc");
+    printf("\n--- Starting Test: %s ---\n", testName);
+    PrintPhysicalMemoryUsage("Before Allocation");
 
-    volatile unsigned char* largeDatas = NULL;
-    RAW_ALLOC(largeDatas, g_ResourceSize);
-    if (RAW_ALLOC_FAILED(largeDatas))
+    volatile unsigned char* largeData = NULL;
+    RAW_ALLOC(largeData, g_ResourceSize);
+
+    if (RAW_ALLOC_FAILED(largeData))
     {
-        perror("[ERROR] doNotPageUpdate");
-#if defined(_MSC_VER)
-        if (IsDebuggerPresent())
-        {
-            __debugbreak();
-        }
-#elif defined(__GNUC__)
-        __builtin_trap();
-#endif
+        PrintError(testName);
         exit(EXIT_FAILURE);
     }
 
-#if defined(_WIN64)
-    Sleep(5000);
-#elif defined(__linux__)
-    sleep(5);
-#endif
+    printf("[INFO] Successfully allocated 4GB virtual memory.\n");
+    PrintPhysicalMemoryUsage("After Allocation (Before Touch)");
 
-    printPhysicalMemoryUsage("doNotPageUpdate() - After Malloc");
-
-    RAW_FREE((void*)largeDatas, g_ResourceSize);
-    largeDatas = NULL;
-}
-
-void doPageUpdateForce(void)
-{
-    printPhysicalMemoryUsage("doPageUpdateForce() - Before Malloc");
-
-    volatile unsigned char* largeDatas = NULL;
-    RAW_ALLOC(largeDatas, g_ResourceSize);
-    if (RAW_ALLOC_FAILED(largeDatas))
+    if (forceTouch)
     {
-        perror("[ERROR] doPageUpdateForce");
-#if defined(_MSC_VER)
-        if (IsDebuggerPresent())
+        printf("[INFO] Touching all pages to force commit...\n");
+        for (size_t i = 0; i < g_ResourceSize; i += 4096)
         {
-            __debugbreak();
+            largeData[i] = 0xAB;
         }
-#elif defined(__GNUC__)
-        __builtin_trap();
-#endif
-        exit(EXIT_FAILURE);
+        PrintPhysicalMemoryUsage("After Touching Pages");
     }
 
-    for (size_t i = 0; i < g_ResourceSize; ++i)
-    {
-        largeDatas[i] = 0xAB; /* dummy access to force page faults and commit physical memory */
-    }
-
+    printf("[INFO] Sleeping for 2 seconds...\n");
 #if defined(_WIN64)
-    Sleep(5000);
-#elif defined(__linux__)
-    sleep(5);
+    Sleep(2000);
+#else
+    sleep(2);
 #endif
 
-    printPhysicalMemoryUsage("doPageUpdateForce() - After Malloc");
-
-    RAW_FREE((void*)largeDatas, g_ResourceSize);
-    largeDatas = NULL;
+    RAW_FREE(largeData, g_ResourceSize);
+    printf("[INFO] Memory released.\n");
+    PrintPhysicalMemoryUsage("After Free");
+    printf("--- Test Finished ---\n");
 }
 
 int main(void)
 {
-    printf("--------------------------------------------------------------------------------\n");
-    doNotPageUpdate();
-    printf("--------------------------------------------------------------------------------\n");
+    printf("Memory Paging Strategy Test (Win: VirtualAlloc vs Linux: mmap)\n--- Starting Test: Lazy Allocation Test ---\n");
+    PrintPhysicalMemoryUsage("Before Allocation");
 
-    printf("press enter to continue test");
-    (void)getchar(); /* void casting to prevent unused return value warning in MSVC (C6031) */
-    
-    printf("--------------------------------------------------------------------------------\n");
-    doPageUpdateForce();
-    printf("--------------------------------------------------------------------------------\n");
-    
+    volatile unsigned char* lazyData = NULL;
+    RAW_ALLOC(lazyData, g_ResourceSize);
+
+    if (RAW_ALLOC_FAILED(lazyData))
+    {
+        PrintError("Lazy Allocation Test");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("[INFO] Successfully allocated 4GB virtual memory.\n");
+    PrintPhysicalMemoryUsage("After Allocation (Before Touch)");
+
+    printf("[INFO] Sleeping for 2 seconds...\n");
+#if defined(_WIN64)
+    Sleep(2000);
+#else
+    sleep(2);
+#endif
+
+    RAW_FREE(lazyData, g_ResourceSize);
+    printf("[INFO] Memory released.\n");
+    PrintPhysicalMemoryUsage("After Free");
+    printf("--- Test Finished ---\n\nPress Enter to start Force Commit Test...");
+
+    (void)getchar();
+
+    RunTest("Force Commit Test", 1);
+
     return 0;
 }
