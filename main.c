@@ -154,9 +154,9 @@ int main(void)
     PrintPhysicalMemoryUsage("After Free");
     printf("--- Test Finished ---\n\nPress Enter to start Force Commit Test...");
 
-    (void)getchar();
+    (void)getchar(); /* void casting to prevent unused return value warning in MSVC (C6031) */
 
-    RunTest("Force Commit Test", 1); /* void casting to prevent unused return value warning in MSVC (C6031) */
+    RunTest("Force Commit Test", 1);
 
     return 0;
 }
