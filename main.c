@@ -107,7 +107,7 @@ void RunTest(const char* testName, int forceTouch)
         printf("[INFO] Touching all pages to force commit...\n");
         for (size_t i = 0; i < g_ResourceSize; i += 4096)
         {
-            largeData[i] = 0xAB;
+            largeData[i] = 0xAB; /* dummy access to force page faults and commit physical memory */
         }
         PrintPhysicalMemoryUsage("After Touching Pages");
     }
@@ -156,7 +156,7 @@ int main(void)
 
     (void)getchar();
 
-    RunTest("Force Commit Test", 1);
+    RunTest("Force Commit Test", 1); /* void casting to prevent unused return value warning in MSVC (C6031) */
 
     return 0;
 }
