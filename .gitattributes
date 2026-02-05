@@ -1,0 +1,11 @@
+* text=auto eol=lf
+
+*.slnx text eol=crlf
+*.vcxproj text eol=crlf
+*.filters text eol=crlf
+*.user text eol=crlf
+
+*.c text eol=lf
+*.h text eol=lf
+Makefile text eol=lf
+.gitignore text eol=lf

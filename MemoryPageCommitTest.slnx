@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="MemoryPageCommitTest.vcxproj" Id="b9589f73-c900-4c73-a147-7c9b4de033d8" />
+</Solution>

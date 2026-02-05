@@ -1,0 +1,23 @@
+# Visual Studio
+.vs/
+x64/
+x86/
+# 가변적인 중간 폴더 (MemoryPa.***) 막기
+MemoryPa.*/
+# 모든 로그 및 빌드 캐시
+*.tlog
+*.log
+*.lastbuildstate
+*.recipe
+*.obj
+*.ilk
+*.pdb
+*.exe
+*.iobj
+*.ipdb
+*.suo
+*.user
+
+# Linux
+x64-linux/
+MemoryPageCommitTest_linux
