@@ -7,10 +7,10 @@ SRC = main.c
 all: $(TARGET)
 
 $(TARGET): $(SRC)
-    @mkdir -p $(TARGET_DIR)
-    $(CC) $(CFLAGS) -o $@ $^
+	@mkdir -p $(TARGET_DIR)
+	$(CC) $(CFLAGS) -o $@ $^
 
 clean:
-    rm -rf $(TARGET_DIR)
+	rm -rf $(TARGET_DIR)
 
 .PHONY: all clean
