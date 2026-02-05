@@ -1,11 +1,13 @@
-* text=auto eol=lf
+# Enforce UTF-8 encoding and LF line endings at the repository level
+* text=auto eol=lf working-tree-encoding=UTF-8
 
+# Binary files - do not touch
+*.exe binary
+*.pdb binary
+*.ilk binary
+
+# Visual Studio specific - keep CRLF for compatibility
 *.slnx text eol=crlf
 *.vcxproj text eol=crlf
-*.filters text eol=crlf
-*.user text eol=crlf
-
-*.c text eol=lf
-*.h text eol=lf
-Makefile text eol=lf
-.gitignore text eol=lf
+*.vcxproj.filters text eol=crlf
+*.vcxproj.user text eol=crlf
