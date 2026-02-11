@@ -14,7 +14,7 @@ This project demonstrates the differences in memory allocation and paging strate
 
 ### Windows
 1. Open `MemoryPageCommitTest.slnx` or `MemoryPageCommitTest.vcxproj` in Visual Studio.
-2. Set the configuration to **Release** and platform to **x64**.
+2. Set the configuration to **Debug or Release** and platform to **x64**.
 3. Build and run the solution.
 
 ### Linux
