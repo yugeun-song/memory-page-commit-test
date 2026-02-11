@@ -15,7 +15,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 
 #define GIB_SIZE (1024.0 * 1024.0 * 1024.0)
 
