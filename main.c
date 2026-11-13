@@ -68,10 +68,12 @@ static void print_physical_memory_usage(const char *const label)
     int fd = open("/proc/self/statm", O_RDONLY);
     if (fd != -1) {
         char buffer[128];
+        ssize_t count = read(fd, buffer, sizeof(buffer) - 1);
 
-        if (read(fd, buffer, sizeof(buffer)) > 0) {
+        if (count > 0) {
             long rss_pages;
 
+            buffer[count] = '\0';
             if (sscanf(buffer, "%*s %ld", &rss_pages) == 1) {
                 double rss_gib = (double)rss_pages * (double)sysconf(_SC_PAGESIZE) / GIB_SIZE;
 
