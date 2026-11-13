@@ -11,3 +11,5 @@
 *.vcxproj text eol=crlf
 *.vcxproj.filters text eol=crlf
 *.vcxproj.user text eol=crlf
+*.props text eol=crlf
+*.targets text eol=crlf
