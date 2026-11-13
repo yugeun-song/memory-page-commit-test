@@ -9,7 +9,6 @@
 #elif defined(__linux__)
 # include <fcntl.h>
 # include <sys/mman.h>
-# include <sys/resource.h>
 # include <sys/types.h>
 # include <unistd.h>
 #else
