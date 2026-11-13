@@ -11,6 +11,6 @@ trim_trailing_whitespace = true
 [*.{slnx,vcxproj,vcxproj.filters,user}]
 end_of_line = crlf
 
-[{Makefile,makefile,GNUmakefile}]
+[{Makefile,makefile,GNUmakefile,*.mk}]
 indent_style = tab
 indent_size = 4
