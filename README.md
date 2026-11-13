@@ -26,7 +26,7 @@ This project demonstrates the differences in memory allocation and paging strate
    ```bash
    ./bin/x86_64-linux-gcc-debug/MemoryPageCommitTest
    ```
-3. **Index**: `make index` writes `compile_commands.json` with the `PROFILE` flags, `tags` and `cscope.out`; `make clean-index` removes them.
+3. **Index**: `make index` writes `compile_commands.json` with the `PROFILE` flags, `tags` and `cscope.out`; `make clean-index` removes them. Once `make index` has written `compile_commands.json`, every build rewrites it when its flags change, so an editor never reads stale flags.
 4. **Clean**: `make clean` removes `bin/` and `build/`; `make distclean` also removes the index, tool outputs such as `gmon.out` and `.cache/`.
    ```bash
    make clean
