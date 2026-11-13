@@ -18,7 +18,7 @@ This project demonstrates the differences in memory allocation and paging strate
 3. Build and run the solution.
 
 ### Linux
-1. **Build**: `make` builds the debug program and the same program with AddressSanitizer, on all cores. `make release` builds the optimized one, and `make CC=clang` uses Clang instead of GCC:
+1. **Build**: `make` builds the debug program and the same program with AddressSanitizer, on all cores. `make release` builds the optimized one, `make PROFILE=release` makes `make` and `make index` use the release build, and `make CC=clang` uses Clang instead of GCC. `make help` lists every goal and variable:
    ```bash
    make
    ```
@@ -26,7 +26,7 @@ This project demonstrates the differences in memory allocation and paging strate
    ```bash
    ./bin/x86_64-linux-gcc-debug/MemoryPageCommitTest
    ```
-3. **Index**: `make index` writes `compile_commands.json`, `tags` and `cscope.out`; `make clean-index` removes them.
+3. **Index**: `make index` writes `compile_commands.json` with the `PROFILE` flags, `tags` and `cscope.out`; `make clean-index` removes them.
 4. **Clean**: `make clean` removes `bin/` and `build/`; `make distclean` also removes the index, tool outputs such as `gmon.out` and `.cache/`.
    ```bash
    make clean
