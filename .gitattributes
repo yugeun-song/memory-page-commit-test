@@ -1,5 +1,5 @@
 # Enforce UTF-8 encoding and LF line endings at the repository level
-* text=auto eol=lf working-tree-encoding=UTF-8
+* text eol=lf working-tree-encoding=UTF-8
 
 # Binary files - do not touch
 *.exe binary
