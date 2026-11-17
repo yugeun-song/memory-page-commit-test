@@ -36,7 +36,7 @@ static volatile unsigned char *allocate_pages(size_t size)
 #if defined(_WIN64)
     return VirtualAlloc(NULL, size, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 #elif defined(__linux__)
-    void *pages = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+    void *const pages = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if (pages == MAP_FAILED) {
         return NULL;
     }
