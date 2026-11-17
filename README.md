@@ -14,7 +14,7 @@ This project demonstrates the differences in memory allocation and paging strate
 
 ### Windows
 1. Open `MemoryPageCommitTest.slnx` or `MemoryPageCommitTest.vcxproj` in Visual Studio.
-2. Set the configuration to **Debug**, **Sanitize** or **Release** and platform to **x64**. `Directory.Build.props` and `Directory.Build.targets` give every project here the counterparts of the Linux build flags: Debug is `/Od /Ob0 /Oi- /Zi /JMC- /GS-` without `/sdl`, `/RTC` or ASLR but with the warnings `/sdl` makes errors, Sanitize adds AddressSanitizer, and Release is `/O2 /sdl /guard:cf` with link-time optimization (LTO), `/CETCOMPAT` and ASLR. Every configuration gets `/W4 /utf-8 /Zc:preprocessor /we4774` and `/guard:ehcont`.
+2. Set the configuration to **Debug**, **Sanitize** or **Release** and platform to **x64**. `Directory.Build.props` and `Directory.Build.targets` give every project here the counterparts of the Linux build flags: Debug is `/Od /Ob0 /Oi- /Zi /JMC- /GS-` without `/sdl`, `/RTC` or ASLR but with the warnings `/sdl` makes errors, Sanitize adds AddressSanitizer, and Release is `/O2 /sdl /guard:cf` with link-time optimization (LTO), `/CETCOMPAT` and ASLR. Every configuration gets `/W4 /utf-8 /Zc:preprocessor /we4774` and `/guard:ehcont`, and the ClangCL toolset also gets `/clang:-std=c99`, since Visual Studio passes clang-cl no C99 option.
 3. Build and run the solution.
 
 ### Linux
