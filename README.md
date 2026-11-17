@@ -31,3 +31,7 @@ This project demonstrates the differences in memory allocation and paging strate
    ```bash
    make clean
    ```
+
+## Coding style
+
+The code follows the [c-programming coding style](https://github.com/yugeun-song/c-programming/blob/main/docs/coding-style.en.md), with one difference: `<psapi.h>` comes after `<windows.h>`, whose types it uses, instead of in alphabetical order.
